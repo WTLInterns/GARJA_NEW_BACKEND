@@ -32,6 +32,10 @@ public class ProductRequests {
 
     private String imageUrl;
 
+    private String date;
+
+    private String time;
+
     
 
     private String category;

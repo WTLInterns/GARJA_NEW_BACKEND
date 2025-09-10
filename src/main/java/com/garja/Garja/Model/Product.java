@@ -47,5 +47,9 @@ public class Product {
 
     private String category;
 
+    private String date;
+
+    private String time;
+
     
 }
