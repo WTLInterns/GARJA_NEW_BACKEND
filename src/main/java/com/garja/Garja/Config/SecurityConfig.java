@@ -35,6 +35,8 @@ public class SecurityConfig {
 	            .requestMatchers("/auth/**").permitAll()  
 	            .requestMatchers("/admin/**").hasAnyAuthority("ADMIN")
 	            .requestMatchers("/user/**").hasAnyAuthority("USER")
+				.requestMatchers("/common/reset-password").hasAnyRole("USER", "ADMIN")
+
 
 	            .anyRequest().authenticated()                 
 	    );

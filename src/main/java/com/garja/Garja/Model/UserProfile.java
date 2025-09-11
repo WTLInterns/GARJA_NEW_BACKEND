@@ -1,5 +1,7 @@
 package com.garja.Garja.Model;
 
+import java.util.List;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -20,4 +22,9 @@ public class UserProfile {
       @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
+
+    
+
+
+
 }

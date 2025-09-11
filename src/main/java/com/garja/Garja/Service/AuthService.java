@@ -58,7 +58,6 @@ public class AuthService {
 
         User savedUser = userRepo.save(user);
 
-        // 2. Create profile based on role
         if ("ADMIN".equalsIgnoreCase(savedUser.getRole())) {
             AdminProfile adminProfile = new AdminProfile();
             // adminProfile.setId(savedUser.getId()); 
@@ -68,14 +67,13 @@ public class AuthService {
             adminProfileRepository.save(adminProfile);
         } else if ("USER".equalsIgnoreCase(savedUser.getRole())) {
             UserProfile userProfile = new UserProfile();
-            // userProfile.setId(savedUser.getId()); // shared PK
+            // userProfile.setId(savedUser.getId());
             userProfile.setPreferredLanguage("ENGLISH"); 
             userProfile.setUser(savedUser);
 
             userProfileRepository.save(userProfile);
         }
 
-        // 3. Build response DTO
         SignupResponse response = new SignupResponse();
         response.setId(savedUser.getId());
         response.setEmail(savedUser.getEmail());

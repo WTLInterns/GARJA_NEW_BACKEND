@@ -44,6 +44,8 @@ public class Product {
 
     private String imageUrl;
 
+    private String imagePublicId;
+
 
     private String category;
 

@@ -1,14 +1,18 @@
 package com.garja.Garja.Service;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.cloudinary.utils.ObjectUtils;
 import com.garja.Garja.DTO.requests.ProductRequests;
 import com.garja.Garja.DTO.response.ProductResponse;
+import com.garja.Garja.Exception.CustomException;
 import com.garja.Garja.Model.Product;
 import com.garja.Garja.Model.User;
 import com.garja.Garja.Repo.ProductRepo;
@@ -23,7 +27,11 @@ public class ProductService {
     @Autowired
     private UserRepo userRepo;
 
-    public ProductResponse addProduct(ProductRequests ProductRequests, String email) {
+    @Autowired
+    private CloudinaryService cloudinaryService;
+
+
+    public ProductResponse addProduct(ProductRequests ProductRequests, String email) throws IOException {
         User user = this.userRepo.findByEmail(email);
 
         Product products = new Product();
@@ -40,6 +48,11 @@ public class ProductService {
         products.setXL(ProductRequests.getXL());
         products.setXXL(ProductRequests.getXXL());
         products.setCategory(ProductRequests.getCategory());
+if (ProductRequests.getImage() != null && !ProductRequests.getImage().isEmpty()) {
+            Map uploadResult = cloudinaryService.upload(ProductRequests.getImage());
+            products.setImageUrl(uploadResult.get("secure_url").toString());
+            products.setImagePublicId(uploadResult.get("public_id").toString());
+        }
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         String date = now.format(dateFormatter);
         products.setDate(date);
@@ -54,6 +67,67 @@ public class ProductService {
 
     }
 
+
+public ProductResponse updateProduct(int productId, ProductRequests request, String email) throws IOException {
+            User user = this.userRepo.findByEmail(email);
+
+        Product product = productRepo.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found with id " + productId));
+
+        product.setProductName(request.getProductName());
+        product.setPrice(request.getPrice());
+        product.setQuantity(request.getQuantity());
+        product.setActive(request.isActive());
+        product.setDescription(request.getDescription());
+        product.setXS(request.getXS());
+        product.setM(request.getM());
+        product.setL(request.getL());
+        product.setXL(request.getXL());
+        product.setXXL(request.getXXL());
+        product.setCategory(request.getCategory());
+        product.setDate(request.getDate());
+        product.setTime(request.getTime());
+
+        if (request.getImage() != null && !request.getImage().isEmpty()) {
+            if (product.getImagePublicId() != null) {
+                cloudinaryService.delete(product.getImagePublicId());
+            }
+
+            Map uploadResult = cloudinaryService.upload(request.getImage());
+            product.setImageUrl(uploadResult.get("secure_url").toString());
+            product.setImagePublicId(uploadResult.get("public_id").toString());
+        }
+
+        productRepo.save(product);
+
+        return new ProductResponse(
+                product.getId(),
+                product.getProductName(),
+                "Product updated successfully!"
+        );
+    }
+
+
+
+    public ProductResponse deleteProduct(int id, String email) throws IOException {
+                    User user = this.userRepo.findByEmail(email);
+
+        if (!productRepo.existsById(id)) {
+            return new ProductResponse(id, null, "Product not found!");
+        }
+
+        Product product = productRepo.getReferenceById(id);
+
+        if (product.getImagePublicId() != null && !product.getImagePublicId().isEmpty()) {
+            cloudinaryService.delete(product.getImagePublicId());
+        }
+
+        productRepo.delete(product);
+        return new ProductResponse(id, product.getProductName(), "Product deleted successfully!");
+    }
+
+
+    
     public List<Product> getAllProducts(String email) {
         User user = this.userRepo.findByEmail(email);
 
@@ -71,6 +145,10 @@ public class ProductService {
         User user = this.userRepo.findByEmail(email);
 
         return productRepo.findTop4ByOrderByDateDescTimeDesc();
+    }
+
+    public Product getByIdProductId(int id){
+        return this.productRepo.findById(id).orElseThrow(()->new CustomException("Product not found with that Id"+id));
     }
 
 }

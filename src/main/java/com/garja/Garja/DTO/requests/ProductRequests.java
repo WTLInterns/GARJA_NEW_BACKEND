@@ -1,5 +1,7 @@
 package com.garja.Garja.DTO.requests;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -30,7 +32,7 @@ public class ProductRequests {
 
     private String XXL;
 
-    private String imageUrl;
+    private MultipartFile image;
 
     private String date;
 

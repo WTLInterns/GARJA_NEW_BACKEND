@@ -13,11 +13,11 @@ public class AdminProfile {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id; // same as User.id
+    private Integer id; 
 
-    private String department; // example field specific to admin
+    private String department; 
 
       @ManyToOne
     @JoinColumn(name = "user_id")
-    private User user;
+    private User user; 
 }

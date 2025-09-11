@@ -15,14 +15,12 @@ public class CloudinaryService {
     @Autowired
     private Cloudinary cloudinary;
 
+    public Map upload(MultipartFile file) throws IOException {
+        return cloudinary.uploader().upload(file.getBytes(),
+                ObjectUtils.asMap("folder", "products"));
+    }
 
-    public String upload(MultipartFile file) {
-        try {
-            Map<String, Object> uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
-            return uploadResult.get("url").toString();
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
+    public void delete(String publicId) throws IOException {
+        cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
     }
 }

@@ -1,11 +1,17 @@
 package com.garja.Garja.Controller;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -24,11 +30,31 @@ public class AdminController {
     @Autowired
     private ProductService productService;
 
-    @PostMapping("/addProduct")
-    public ProductResponse addProduct(@RequestBody ProductRequests ProductRequests) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    @PostMapping(value = "/addProduct", consumes = "multipart/form-data")
+    public ProductResponse addProduct(@ModelAttribute ProductRequests productRequests) throws IOException {
+       Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     		String email = authentication.getName();
-        return productService.addProduct(ProductRequests,email);
+        return productService.addProduct(productRequests,email);
+    }
+
+    @PutMapping("/updateProduct/{id}")
+    public ResponseEntity<ProductResponse> updateProduct(
+            @PathVariable int id,
+            @ModelAttribute ProductRequests request) throws IOException {
+
+              Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    		String email = authentication.getName();
+
+        ProductResponse response = productService.updateProduct(id, request,email);
+        return ResponseEntity.ok(response);
+    }
+
+
+    @DeleteMapping("/deleteProduct/{id}")
+    public ResponseEntity<ProductResponse> deleteProduct(@PathVariable int id) throws IOException {
+      Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    		String email = authentication.getName();
+        return ResponseEntity.ok(productService.deleteProduct(id,email));
     }
 
     @GetMapping("/getAllProducts")
