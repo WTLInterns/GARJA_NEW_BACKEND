@@ -53,5 +53,9 @@ public class Product {
 
     private String time;
 
+
+    @OneToMany
+    private List<Review> reviews;
+
     
 }
