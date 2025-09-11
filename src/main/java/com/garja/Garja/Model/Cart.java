@@ -5,6 +5,10 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import lombok.ToString;
+
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -21,6 +25,20 @@ public class Cart {
     @JoinColumn(name = "user_id", referencedColumnName = "id", unique = true)
     private User user;
 
-    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<CartItem> items;
+    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonManagedReference
+    @ToString.Exclude
+    private List<CartItem> items = new ArrayList<>();
+
+    public void addItem(CartItem item) {
+        if (item == null) return;
+        item.setCart(this);
+        this.items.add(item);
+    }
+
+    public void removeItem(CartItem item) {
+        if (item == null) return;
+        this.items.remove(item);
+        item.setCart(null);
+    }
 }

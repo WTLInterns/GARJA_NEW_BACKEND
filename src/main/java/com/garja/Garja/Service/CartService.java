@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -33,7 +34,12 @@ public class CartService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         return cartRepository.findByUser(user)
-                .orElseGet(() -> cartRepository.save(new Cart(null, user, List.of())));
+                .orElseGet(() -> {
+                    Cart cart = new Cart();
+                    cart.setUser(user);
+                    cart.setItems(new ArrayList<>());
+                    return cartRepository.save(cart);
+                });
     }
 
 
@@ -46,7 +52,7 @@ public class CartService {
         // check if product already exists in cart
         CartItem existingItem = cart.getItems()
                 .stream()
-                .filter(item -> item.getProduct().getId() == (productId))
+                .filter(item -> Integer.valueOf(item.getProduct().getId()).equals(productId))
                 .findFirst()
                 .orElse(null);
 
@@ -55,7 +61,7 @@ public class CartService {
             cartItemRepository.save(existingItem);
         } else {
             CartItem newItem = new CartItem(null, quantity, cart, product);
-            cart.getItems().add(newItem);
+            cart.addItem(newItem);
             cartItemRepository.save(newItem);
         }
 
@@ -70,7 +76,7 @@ public class CartService {
     @Transactional
     public Cart removeProductFromCart(Integer userId, Integer productId) {
         Cart cart = getOrCreateCart(userId);
-        cart.getItems().removeIf(item -> item.getProduct().getId() == (productId));
+        cart.getItems().removeIf(item -> Integer.valueOf(item.getProduct().getId()).equals(productId));
         return cartRepository.save(cart);
     }
 
@@ -79,7 +85,7 @@ public class CartService {
         Cart cart = getOrCreateCart(userId);
 
         cart.getItems().forEach(item -> {
-            if (item.getProduct().getId() == (productId)) {
+            if (Integer.valueOf(item.getProduct().getId()).equals(productId)) {
                 item.setQuantity(quantity);
                 cartItemRepository.save(item);
             }
