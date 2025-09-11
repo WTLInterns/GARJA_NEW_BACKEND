@@ -1,6 +1,5 @@
 package com.garja.Garja.Model;
 
-import java.util.List;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -11,16 +10,20 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserProfile {
+public class CartItem {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id; 
+    private Long id;
 
-    private String preferredLanguage;
+    private int quantity;
 
-    @OneToOne
-    @JoinColumn(name = "user_id", referencedColumnName = "id", unique = true)
-    private User user;
+    @ManyToOne
+    @JoinColumn(name = "cart_id")
+    private Cart cart;
 
+    @ManyToOne
+    @JoinColumn(name = "product_id")
+    private Product product;
 }
+

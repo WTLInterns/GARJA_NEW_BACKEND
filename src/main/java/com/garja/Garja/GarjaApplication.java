@@ -9,5 +9,4 @@ public class GarjaApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(GarjaApplication.class, args);
 	}
-
 }

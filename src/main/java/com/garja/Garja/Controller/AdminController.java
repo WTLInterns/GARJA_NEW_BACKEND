@@ -25,7 +25,7 @@ import com.garja.Garja.Service.ProductService;
 
 @RestController
 @RequestMapping("/admin")
-public class AdminController {
+public class  AdminController {
     
     @Autowired
     private ProductService productService;
