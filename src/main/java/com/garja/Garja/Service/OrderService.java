@@ -2,6 +2,7 @@ package com.garja.Garja.Service;
 
 import com.garja.Garja.DTO.requests.BuyNowRequest;
 import com.garja.Garja.DTO.response.OrderResponse;
+import com.garja.Garja.DTO.response.AdminOrderResponse;
 import com.garja.Garja.Model.Cart;
 import com.garja.Garja.Model.Product;
 import com.garja.Garja.Model.User;
@@ -182,6 +183,31 @@ public class OrderService {
                         user.getId(),
                         ""
                 ))
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<AdminOrderResponse> getAllOrdersForAdmin() {
+        return orderRepository.findAll().stream()
+                .sorted((a, b) -> Integer.compare(b.getId(), a.getId()))
+                .map(order -> {
+                    User u = order.getUser();
+                    return new AdminOrderResponse(
+                            order.getId(),
+                            order.getOrderDate(),
+                            order.getTotalAmount(),
+                            order.getStatus(),
+                            order.getProductName(),
+                            order.getQuantity(),
+                            order.getSize(),
+                            order.getImage(),
+                            u != null ? u.getId() : 0,
+                            u != null ? u.getFirstName() : null,
+                            u != null ? u.getLastName() : null,
+                            u != null ? u.getEmail() : null,
+                            u != null ? u.getPhoneNumber() : null
+                    );
+                })
                 .collect(Collectors.toList());
     }
 }
