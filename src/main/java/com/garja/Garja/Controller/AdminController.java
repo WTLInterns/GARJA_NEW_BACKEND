@@ -19,8 +19,10 @@ import org.springframework.security.core.Authentication;
 
 import com.garja.Garja.DTO.requests.ProductRequests;
 import com.garja.Garja.DTO.response.ProductResponse;
+import com.garja.Garja.DTO.response.AdminOrderResponse;
 import com.garja.Garja.Model.Product;
 import com.garja.Garja.Service.ProductService;
+import com.garja.Garja.Service.OrderService;
 
 @RestController
 @RequestMapping("/admin")
@@ -28,6 +30,9 @@ public class  AdminController {
     
     @Autowired
     private ProductService productService;
+
+    @Autowired
+    private OrderService orderService;
 
     @PostMapping(value = "/addProduct", consumes = "multipart/form-data")
     public ProductResponse addProduct(@ModelAttribute ProductRequests productRequests) throws IOException {
@@ -73,11 +78,13 @@ public class  AdminController {
     @GetMapping("/getLatestProducts")
     public List<Product> getLatestProducts(){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    		String email = authentication.getName();
+			String email = authentication.getName();
         return this.productService.getLatestProducts(email);
     }
 
-
-
-
+    @GetMapping("/orders")
+    public ResponseEntity<List<AdminOrderResponse>> getAllOrders() {
+        List<AdminOrderResponse> orders = orderService.getAllOrdersForAdmin();
+        return ResponseEntity.ok(orders);
+    }
 }
