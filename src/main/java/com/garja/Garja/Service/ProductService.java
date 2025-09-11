@@ -31,25 +31,26 @@ public class ProductService {
     private CloudinaryService cloudinaryService;
 
 
-    public ProductResponse addProduct(ProductRequests ProductRequests, String email) throws IOException {
+    public ProductResponse addProduct(ProductRequests productRequests, String email) throws IOException {
         User user = this.userRepo.findByEmail(email);
 
         Product products = new Product();
         LocalDateTime now = LocalDateTime.now();
 
-        products.setProductName(ProductRequests.getProductName());
-        products.setPrice(ProductRequests.getPrice());
-        products.setQuantity(ProductRequests.getQuantity());
-        products.setDescription(ProductRequests.getDescription());
-        products.setXS(ProductRequests.getXS());
-        products.setM(ProductRequests.getM());
+        products.setProductName(productRequests.getProductName());
+        products.setPrice(productRequests.getPrice());
+        products.setQuantity(productRequests.getQuantity());
+        products.setDescription(productRequests.getDescription());
+        products.setXS(productRequests.getXS());
+        products.setM(productRequests.getM());
+        products.setActive(products.isActive());
 
-        products.setL(ProductRequests.getL());
-        products.setXL(ProductRequests.getXL());
-        products.setXXL(ProductRequests.getXXL());
-        products.setCategory(ProductRequests.getCategory());
-if (ProductRequests.getImage() != null && !ProductRequests.getImage().isEmpty()) {
-            Map uploadResult = cloudinaryService.upload(ProductRequests.getImage());
+        products.setL(productRequests.getL());
+        products.setXL(productRequests.getXL());
+        products.setXXL(productRequests.getXXL());
+        products.setCategory(productRequests.getCategory());
+if (productRequests.getImage() != null && !productRequests.getImage().isEmpty()) {
+            Map uploadResult = cloudinaryService.upload(productRequests.getImage());
             products.setImageUrl(uploadResult.get("secure_url").toString());
             products.setImagePublicId(uploadResult.get("public_id").toString());
         }

@@ -4,6 +4,8 @@ import com.garja.Garja.Model.Cart;
 import com.garja.Garja.Model.CartItem;
 import com.garja.Garja.Model.Product;
 import com.garja.Garja.Model.User;
+import com.garja.Garja.DTO.response.CartResponse;
+import com.garja.Garja.DTO.response.CartItemResponse;
 
 import com.garja.Garja.Repo.CartItemRepository;
 import com.garja.Garja.Repo.CartRepository;
@@ -15,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -44,10 +47,20 @@ public class CartService {
 
 
     @Transactional
-    public Cart addProductToCart(Integer userId, Integer productId, int quantity) {
+    public CartResponse addProductToCart(Integer userId, Integer productId, int quantity) {
         Cart cart = getOrCreateCart(userId);
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
+
+        // Validate product is active
+        if (!product.isActive()) {
+            throw new RuntimeException("Product is not available");
+        }
+
+        // Validate stock
+        if (product.getQuantity() < quantity) {
+            throw new RuntimeException("Insufficient stock available");
+        }
 
         // check if product already exists in cart
         CartItem existingItem = cart.getItems()
@@ -57,41 +70,61 @@ public class CartService {
                 .orElse(null);
 
         if (existingItem != null) {
-            existingItem.setQuantity(existingItem.getQuantity() + quantity);
+            int newQuantity = existingItem.getQuantity() + quantity;
+            if (product.getQuantity() < newQuantity) {
+                throw new RuntimeException("Insufficient stock for requested quantity");
+            }
+            existingItem.setQuantity(newQuantity);
             cartItemRepository.save(existingItem);
         } else {
-            CartItem newItem = new CartItem(null, quantity, cart, product);
+            CartItem newItem = new CartItem();
+            newItem.setQuantity(quantity);
+            newItem.setSize(null); // size can be set later via updateProductSize API
+            newItem.setCart(cart);
+            newItem.setProduct(product);
             cart.addItem(newItem);
             cartItemRepository.save(newItem);
         }
 
-        return cartRepository.save(cart);
+        cartRepository.save(cart);
+        return convertToCartResponse(cart);
     }
 
 
-    public Cart getCart(Integer userId) {
-        return getOrCreateCart(userId);
+    public CartResponse getCart(Integer userId) {
+        Cart cart = getOrCreateCart(userId);
+        return convertToCartResponse(cart);
     }
 
     @Transactional
-    public Cart removeProductFromCart(Integer userId, Integer productId) {
+    public CartResponse removeProductFromCart(Integer userId, Integer productId) {
         Cart cart = getOrCreateCart(userId);
         cart.getItems().removeIf(item -> Integer.valueOf(item.getProduct().getId()).equals(productId));
-        return cartRepository.save(cart);
+        cartRepository.save(cart);
+        return convertToCartResponse(cart);
     }
 
     @Transactional
-    public Cart updateProductQuantity(Integer userId, Integer productId, int quantity) {
+    public CartResponse updateProductQuantity(Integer userId, Integer productId, int quantity) {
         Cart cart = getOrCreateCart(userId);
+        
+        if (quantity <= 0) {
+            throw new RuntimeException("Quantity must be greater than 0");
+        }
 
         cart.getItems().forEach(item -> {
             if (Integer.valueOf(item.getProduct().getId()).equals(productId)) {
+                // Validate stock
+                if (item.getProduct().getQuantity() < quantity) {
+                    throw new RuntimeException("Insufficient stock for requested quantity");
+                }
                 item.setQuantity(quantity);
                 cartItemRepository.save(item);
             }
         });
 
-        return cartRepository.save(cart);
+        cartRepository.save(cart);
+        return convertToCartResponse(cart);
     }
 
     @Transactional
@@ -100,5 +133,85 @@ public class CartService {
         cartItemRepository.deleteAll(cart.getItems());
         cart.getItems().clear();
         cartRepository.save(cart);
+    }
+
+    // Helper method to convert Cart entity to CartResponse DTO
+    private CartResponse convertToCartResponse(Cart cart) {
+        if (cart == null || cart.getUser() == null) {
+            throw new RuntimeException("Invalid cart or user");
+        }
+
+        List<CartItemResponse> itemResponses = cart.getItems() == null ? 
+                new ArrayList<>() : 
+                cart.getItems().stream()
+                        .map(this::convertToCartItemResponse)
+                        .collect(Collectors.toList());
+
+        double totalAmount = itemResponses.stream()
+                .mapToDouble(CartItemResponse::getLineTotal)
+                .sum();
+
+        int totalItems = itemResponses.stream()
+                .mapToInt(CartItemResponse::getQuantity)
+                .sum();
+
+        return new CartResponse(
+                cart.getId(),
+                cart.getUser().getId(),
+                itemResponses,
+                totalAmount,
+                totalItems
+        );
+    }
+
+    // Helper method to convert CartItem entity to CartItemResponse DTO
+    private CartItemResponse convertToCartItemResponse(CartItem item) {
+        if (item == null || item.getProduct() == null) {
+            throw new RuntimeException("Invalid cart item or product");
+        }
+        
+        Product product = item.getProduct();
+        double price;
+        try {
+            price = Double.parseDouble(product.getPrice());
+        } catch (NumberFormatException e) {
+            throw new RuntimeException("Invalid product price format");
+        }
+        double lineTotal = price * item.getQuantity();
+
+        return new CartItemResponse(
+                item.getId(),
+                item.getQuantity(),
+                lineTotal,
+                item.getSize(),
+                product.getId(),
+                product.getProductName(),
+                product.getPrice(),
+                product.getImageUrl(),
+                product.getCategory(),
+                product.isActive()
+        );
+    }
+
+    @Transactional
+    public CartResponse updateProductSize(Integer userId, Integer productId, String size) {
+        Cart cart = getOrCreateCart(userId);
+        boolean updated = false;
+
+        for (CartItem item : cart.getItems()) {
+            if (Integer.valueOf(item.getProduct().getId()).equals(productId)) {
+                item.setSize(size);
+                cartItemRepository.save(item);
+                updated = true;
+                break;
+            }
+        }
+
+        if (!updated) {
+            throw new RuntimeException("Product not found in cart");
+        }
+
+        cartRepository.save(cart);
+        return convertToCartResponse(cart);
     }
 }

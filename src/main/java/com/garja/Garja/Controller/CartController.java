@@ -1,9 +1,13 @@
 package com.garja.Garja.Controller;
 
-import com.garja.Garja.Model.Cart;
+import com.garja.Garja.DTO.response.CartResponse;
 import com.garja.Garja.Service.CartService;
+import com.garja.Garja.Repo.UserRepo;
+import com.garja.Garja.Model.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -12,43 +16,91 @@ import org.springframework.web.bind.annotation.*;
 public class CartController {
 
     private final CartService cartService;
+    private final UserRepo userRepository;
 
-    @PostMapping("/{userId}/add/{productId}")
-    public ResponseEntity<Cart> addProductToCart(
-            @PathVariable Integer userId,
+    @PostMapping("/add/{productId}")
+    public ResponseEntity<CartResponse> addProductToCart(
             @PathVariable Integer productId,
             @RequestParam(defaultValue = "1") int quantity) {
-
-        return ResponseEntity.ok(cartService.addProductToCart(userId, productId, quantity));
+        try {
+            Integer userId = getUserIdFromJWT();
+            return ResponseEntity.ok(cartService.addProductToCart(userId, productId, quantity));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
-    @GetMapping("/{userId}")
-    public ResponseEntity<Cart> getCart(@PathVariable Integer userId) {
-        return ResponseEntity.ok(cartService.getCart(userId));
+    @GetMapping
+    public ResponseEntity<CartResponse> getCart() {
+        try {
+            Integer userId = getUserIdFromJWT();
+            return ResponseEntity.ok(cartService.getCart(userId));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
-    @DeleteMapping("/{userId}/remove/{productId}")
-    public ResponseEntity<Cart> removeProductFromCart(
-            @PathVariable Integer userId,
-            @PathVariable Integer productId) {
-
-        return ResponseEntity.ok(cartService.removeProductFromCart(userId, productId));
+    @DeleteMapping("/remove/{productId}")
+    public ResponseEntity<CartResponse> removeProductFromCart(@PathVariable Integer productId) {
+        try {
+            Integer userId = getUserIdFromJWT();
+            return ResponseEntity.ok(cartService.removeProductFromCart(userId, productId));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
-
-    @PutMapping("/{userId}/update/{productId}")
-    public ResponseEntity<Cart> updateProductQuantity(
-            @PathVariable Integer userId,
+    @PutMapping("/update/{productId}")
+    public ResponseEntity<CartResponse> updateProductQuantity(
             @PathVariable Integer productId,
             @RequestParam int quantity) {
-
-        return ResponseEntity.ok(cartService.updateProductQuantity(userId, productId, quantity));
+        try {
+            Integer userId = getUserIdFromJWT();
+            return ResponseEntity.ok(cartService.updateProductQuantity(userId, productId, quantity));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
+    @PutMapping("/size/{productId}")
+    public ResponseEntity<CartResponse> updateProductSize(
+            @PathVariable Integer productId,
+            @RequestParam String size) {
+        try {
+            Integer userId = getUserIdFromJWT();
+            return ResponseEntity.ok(cartService.updateProductSize(userId, productId, size));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
 
-    @DeleteMapping("/{userId}/clear")
-    public ResponseEntity<String> clearCart(@PathVariable Integer userId) {
-        cartService.clearCart(userId);
-        return ResponseEntity.ok("Cart cleared successfully");
+    @DeleteMapping("/clear")
+    public ResponseEntity<String> clearCart() {
+        try {
+            Integer userId = getUserIdFromJWT();
+            cartService.clearCart(userId);
+            return ResponseEntity.ok("Cart cleared successfully");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body("Failed to clear cart");
+        }
+    }
+
+    // Helper method to get userId from JWT token
+    private Integer getUserIdFromJWT() {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication == null || authentication.getName() == null) {
+                throw new RuntimeException("Authentication required");
+            }
+            
+            String email = authentication.getName();
+            User user = userRepository.findByEmail(email);
+            if (user == null) {
+                throw new RuntimeException("User not found");
+            }
+            return user.getId();
+        } catch (Exception e) {
+            throw new RuntimeException("Authentication failed: " + e.getMessage());
+        }
     }
 }

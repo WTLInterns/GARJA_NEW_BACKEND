@@ -20,6 +20,8 @@ public class CartItem {
 
     private int quantity;
 
+    private String size;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cart_id")
     @JsonBackReference
