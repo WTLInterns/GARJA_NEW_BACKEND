@@ -5,11 +5,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import com.cloudinary.utils.ObjectUtils;
 import com.garja.Garja.DTO.requests.ProductRequests;
 import com.garja.Garja.DTO.response.ProductResponse;
 import com.garja.Garja.Exception.CustomException;
