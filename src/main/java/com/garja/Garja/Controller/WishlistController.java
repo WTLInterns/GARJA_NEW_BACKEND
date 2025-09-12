@@ -22,7 +22,7 @@ public class WishlistController {
     }
 
 
-    @PostMapping("{userId}/{productId}")
+    @DeleteMapping("{userId}/{productId}")
     public ResponseEntity<String> removeProductFromWishlist(@PathVariable int userId,@PathVariable int productId){
         return ResponseEntity.ok(wishlistService.removeProductFromWishlist(userId,productId));
     }

@@ -4,6 +4,7 @@ import com.garja.Garja.DTO.requests.BuyNowRequest;
 import com.garja.Garja.DTO.response.OrderResponse;
 import com.garja.Garja.DTO.response.UserWithOrderStatsDTO;
 import com.garja.Garja.DTO.response.AdminOrderResponse;
+import com.garja.Garja.DTO.response.DashboardResponse;
 import com.garja.Garja.Model.Cart;
 import com.garja.Garja.Model.Product;
 import com.garja.Garja.Model.User;
@@ -189,31 +190,32 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
-    public List<AdminOrderResponse> getAllOrdersForAdmin(String email) {
-        User user = userRepository.findByEmail(email);
+public List<AdminOrderResponse> getAllOrdersForAdmin(String email) {
+    User user = userRepository.findByEmail(email);
 
-        return orderRepository.findAll().stream()
-                .sorted((a, b) -> Integer.compare(b.getId(), a.getId()))
-                .map(order -> {
-                    User u = order.getUser();
-                    return new AdminOrderResponse(
-                            order.getId(),
-                            order.getOrderDate(),
-                            order.getTotalAmount(),
-                            order.getStatus(),
-                            order.getProductName(),
-                            order.getQuantity(),
-                            order.getSize(),
-                            order.getImage(),
-                            u != null ? u.getId() : 0,
-                            u != null ? u.getFirstName() : null,
-                            u != null ? u.getLastName() : null,
-                            u != null ? u.getEmail() : null,
-                            u != null ? u.getPhoneNumber() : null
-                    );
-                })
-                .collect(Collectors.toList());
-    }
+    return orderRepository.findAll().stream()
+            .sorted((a, b) -> b.getOrderDate().compareTo(a.getOrderDate())) // ✅ Latest first
+            .map(order -> {
+                User u = order.getUser();
+                return new AdminOrderResponse(
+                        order.getId(),
+                        order.getOrderDate(),
+                        order.getTotalAmount(),
+                        order.getStatus(),
+                        order.getProductName(),
+                        order.getQuantity(),
+                        order.getSize(),
+                        order.getImage(),
+                        u != null ? u.getId() : 0,
+                        u != null ? u.getFirstName() : null,
+                        u != null ? u.getLastName() : null,
+                        u != null ? u.getEmail() : null,
+                        u != null ? u.getPhoneNumber() : null
+                );
+            })
+            .collect(Collectors.toList());
+}
+
 
     public UserOrders updateStatus(Integer orderId, String newStatus, String email) { 
         UserOrders order = orderRepository.findById(orderId)
@@ -300,5 +302,28 @@ public class OrderService {
         );
     }).toList();
 }
+
+public DashboardResponse countForDashboard(String email) {
+    User user = this.userRepository.findByEmail(email);
+        int customerCount = (int) userRepository.findAll()
+                .stream()
+                .filter(u -> "USER".equalsIgnoreCase(u.getRole()))
+                .count();
+
+        int orderCount = orderRepository.findAll().size();
+
+        int productCount = productRepository.findAll().size();
+
+        double totalPrice = orderRepository.findAll()
+                .stream()
+                .filter(o->o.getStatus().equals("DELIVERED"))
+                .mapToDouble(UserOrders::getTotalAmount)   
+                .sum();
+
+        return new DashboardResponse(orderCount, (int) totalPrice, productCount, customerCount);
+    }
+
+    
+
 
 }

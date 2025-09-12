@@ -21,6 +21,7 @@ import com.garja.Garja.DTO.requests.ProductRequests;
 import com.garja.Garja.DTO.response.ProductResponse;
 import com.garja.Garja.DTO.response.UserWithOrderStatsDTO;
 import com.garja.Garja.DTO.response.AdminOrderResponse;
+import com.garja.Garja.DTO.response.DashboardResponse;
 import com.garja.Garja.Model.Product;
 import com.garja.Garja.Model.UserOrders;
 import com.garja.Garja.Service.ProductService;
@@ -119,5 +120,13 @@ public class  AdminController {
     		String email = authentication.getName();
         List<UserWithOrderStatsDTO> response = orderService.getAllUserByRole(email);
         return ResponseEntity.ok(response);
+    }
+
+
+    @GetMapping("/dashboardResponse")
+    public DashboardResponse getAllDashboardCount(){
+       Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    		String email = authentication.getName();
+        return this.orderService.countForDashboard(email);
     }
 }
