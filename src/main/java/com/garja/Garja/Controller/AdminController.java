@@ -61,26 +61,26 @@ public class  AdminController {
         return ResponseEntity.ok(productService.deleteProduct(id,email));
     }
 
-    @GetMapping("/getAllProducts")
-    public List<Product> getAllProducts(){
-         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    		String email = authentication.getName();
-        return productService.getAllProducts();
-    }
+    // @GetMapping("/getAllProducts")
+    // public List<Product> getAllProducts(){
+    //      Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    // 		String email = authentication.getName();
+    //     return productService.getAllProducts();
+    // }
 
-    @GetMapping("/getProductByCategory")
-    public List<Product> getAllProductsByCategory(@RequestParam String category){ 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    		String email = authentication.getName();
-        return this.productService.getProductsByCategory(category);
-    }
+    // @GetMapping("/getProductByCategory")
+    // public List<Product> getAllProductsByCategory(@RequestParam String category){ 
+    //     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    // 		String email = authentication.getName();
+    //     return this.productService.getProductsByCategory(category);
+    // }
 
-    @GetMapping("/getLatestProducts")
-    public List<Product> getLatestProducts(){
-      //   Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-			// String email = authentication.getName();
-        return this.productService.getLatestProducts();
-    }
+    // @GetMapping("/getLatestProducts")
+    // public List<Product> getLatestProducts(){
+    //   //   Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		// 	// String email = authentication.getName();
+    //     return this.productService.getLatestProducts();
+    // }
 
     @GetMapping("/orders")
     public ResponseEntity<List<AdminOrderResponse>> getAllOrders() {
