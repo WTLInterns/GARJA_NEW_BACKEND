@@ -28,7 +28,7 @@ public class Product {
 
     private int quantity;
 
-    private boolean isActive = true;
+    private String isActive;
 
     private String description;
 

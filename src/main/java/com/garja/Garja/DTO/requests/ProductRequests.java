@@ -18,7 +18,7 @@ public class ProductRequests {
 
     private int quantity;
 
-    private boolean isActive;
+    private String isActive;
 
     private String description;
 
