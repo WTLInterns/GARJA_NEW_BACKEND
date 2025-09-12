@@ -23,4 +23,6 @@ public class SignupResponse {
 
     private String role;
 
+    private String token;
+
 }

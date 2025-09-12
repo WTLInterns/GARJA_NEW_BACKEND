@@ -1,5 +1,7 @@
 package com.garja.Garja.Service;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -29,4 +31,24 @@ public class UserDetailsServiceImpl implements UserDetailsService{
         }
 	}
 
+
+	// public List<User> getAllUserByRole(String email) {
+	// 			User user = userRepo.findByEmail(username);
+	// 			return userRepo.findAll();
+
+	// }
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+		

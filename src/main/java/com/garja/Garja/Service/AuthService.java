@@ -56,6 +56,7 @@ public class AuthService {
         user.setRole(requests.getRole());
         user.setPhoneNumber(requests.getPhoneNumber());
 
+
         User savedUser = userRepo.save(user);
 
         if ("ADMIN".equalsIgnoreCase(savedUser.getRole())) {
@@ -63,7 +64,7 @@ public class AuthService {
             // adminProfile.setId(savedUser.getId()); 
             adminProfile.setDepartment("IT");      
             adminProfile.setUser(savedUser);
-
+                                                                                                                                                            
             adminProfileRepository.save(adminProfile);
         } else if ("USER".equalsIgnoreCase(savedUser.getRole())) {
             UserProfile userProfile = new UserProfile();
@@ -75,6 +76,8 @@ public class AuthService {
         }
 
         SignupResponse response = new SignupResponse();
+            String token = jwtUtils.generateToken(savedUser);
+
         response.setId(savedUser.getId());
         response.setEmail(savedUser.getEmail());
         response.setPassword(savedUser.getPassword());
@@ -82,6 +85,8 @@ public class AuthService {
         response.setLastName(savedUser.getLastName());
         response.setPhoneNumber(savedUser.getPhoneNumber());
         response.setRole(savedUser.getRole());
+        response.setToken(token);
+
 
         return response;
     }

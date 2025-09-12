@@ -18,7 +18,6 @@ public class AdminOrderResponse {
     private String size;
     private String image;
 
-    // User details
     private int userId;
     private String firstName;
     private String lastName;

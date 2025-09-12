@@ -129,21 +129,21 @@ public ProductResponse updateProduct(int productId, ProductRequests request, Str
 
 
     
-    public List<Product> getAllProducts(String email) {
-        User user = this.userRepo.findByEmail(email);
+    public List<Product> getAllProducts() {
+        // User user = this.userRepo.findByEmail(email);
 
         return productRepo.findAll();
     }
 
-    public List<Product> getProductsByCategory(String category, String email) {
-        User user = this.userRepo.findByEmail(email);
+    public List<Product> getProductsByCategory(String category) {
+        // User user = this.userRepo.findByEmail(email);
 
         return productRepo.findAll().stream().filter(product -> product.getCategory().equalsIgnoreCase(category))
                 .toList();
     }
 
-    public List<Product> getLatestProducts(String email) {
-        User user = this.userRepo.findByEmail(email);
+    public List<Product> getLatestProducts() {
+        // User user = this.userRepo.findByEmail(email);
 
         return productRepo.findTop4ByOrderByDateDescTimeDesc();
     }
@@ -151,5 +151,8 @@ public ProductResponse updateProduct(int productId, ProductRequests request, Str
     public Product getByIdProductId(int id){
         return this.productRepo.findById(id).orElseThrow(()->new CustomException("Product not found with that Id"+id));
     }
+
+
+    
 
 }
