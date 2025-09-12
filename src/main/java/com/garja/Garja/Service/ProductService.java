@@ -40,7 +40,8 @@ public class ProductService {
         products.setDescription(productRequests.getDescription());
         products.setXS(productRequests.getXS());
         products.setM(productRequests.getM());
-        products.setActive(products.isActive());
+        // products.setActive(products.isActive());
+        products.setIsActive(productRequests.getIsActive());
 
         products.setL(productRequests.getL());
         products.setXL(productRequests.getXL());
@@ -75,7 +76,7 @@ public ProductResponse updateProduct(int productId, ProductRequests request, Str
         product.setProductName(request.getProductName());
         product.setPrice(request.getPrice());
         product.setQuantity(request.getQuantity());
-        product.setActive(request.isActive());
+        product.setIsActive(request.getIsActive());
         product.setDescription(request.getDescription());
         product.setXS(request.getXS());
         product.setM(request.getM());

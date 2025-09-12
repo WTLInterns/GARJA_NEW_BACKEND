@@ -37,7 +37,7 @@ public class OrderService {
                 .orElseThrow(() -> new RuntimeException("Product not found"));
 
         // Validate product is active
-        if (!product.isActive()) {
+        if (product.getIsActive()=="0") {
             throw new RuntimeException("Product is not available");
         }
 
@@ -103,7 +103,7 @@ public class OrderService {
         for (var item : cart.getItems()) {
             Product product = item.getProduct();
             
-            if (!product.isActive()) {
+            if (product.getIsActive()=="0") {
                 throw new RuntimeException("Product " + product.getProductName() + " is no longer available");
             }
             

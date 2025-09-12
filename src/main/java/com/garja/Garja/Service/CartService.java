@@ -53,7 +53,7 @@ public class CartService {
                 .orElseThrow(() -> new RuntimeException("Product not found"));
 
         // Validate product is active
-        if (!product.isActive()) {
+        if (product.getIsActive()=="0") {
             throw new RuntimeException("Product is not available");
         }
 
@@ -189,7 +189,7 @@ public class CartService {
                 product.getPrice(),
                 product.getImageUrl(),
                 product.getCategory(),
-                product.isActive()
+                product.getIsActive()
         );
     }
 

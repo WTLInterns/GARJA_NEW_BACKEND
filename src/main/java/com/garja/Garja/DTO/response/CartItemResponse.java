@@ -20,5 +20,5 @@ public class CartItemResponse {
     private String price;
     private String imageUrl;
     private String category;
-    private boolean isActive;
+    private String isActive;
 }
