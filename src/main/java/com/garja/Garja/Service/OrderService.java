@@ -2,6 +2,7 @@ package com.garja.Garja.Service;
 
 import com.garja.Garja.DTO.requests.BuyNowRequest;
 import com.garja.Garja.DTO.response.OrderResponse;
+import com.garja.Garja.DTO.response.UserWithOrderStatsDTO;
 import com.garja.Garja.DTO.response.AdminOrderResponse;
 import com.garja.Garja.Model.Cart;
 import com.garja.Garja.Model.Product;
@@ -17,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -187,7 +189,9 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
-    public List<AdminOrderResponse> getAllOrdersForAdmin() {
+    public List<AdminOrderResponse> getAllOrdersForAdmin(String email) {
+        User user = userRepository.findByEmail(email);
+
         return orderRepository.findAll().stream()
                 .sorted((a, b) -> Integer.compare(b.getId(), a.getId()))
                 .map(order -> {
@@ -210,4 +214,91 @@ public class OrderService {
                 })
                 .collect(Collectors.toList());
     }
+
+    public UserOrders updateStatus(Integer orderId, String newStatus, String email) { 
+        UserOrders order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+
+        order.setStatus(newStatus);
+        return orderRepository.save(order);
+    }
+
+    // public AdminOrderResponse getOrderById(int orderId){
+    // UserOrders order = orderRepository.findById(orderId).orElseThrow();
+    // return new AdminOrderResponse(order.getId(),
+    // order.getOrderDate(),
+    // order.getTotalAmount(),
+    // order.getStatus(),
+    // order.getProductName(),
+    // order.getQuantity(),
+    // order.getSize(),order.getImage(),
+    // order.getUser().getId(),
+    // order.getUser().getFirstName(),
+    // order.getUser().getLastName(),
+    // order.getUser().getEmail(),
+    // order.getUser().getPhoneNumber());
+
+
+    public AdminOrderResponse getOrderById(int orderId, String email){
+        User user = this.userRepository.findByEmail(email);
+    UserOrders order = orderRepository.findById(orderId).orElseThrow();
+    return new AdminOrderResponse(order.getId(),
+    order.getOrderDate(),
+    order.getTotalAmount(),
+    order.getStatus(),
+    order.getProductName(),
+    order.getQuantity(),
+    order.getSize(),order.getImage(),
+    order.getUser().getId(),
+    order.getUser().getFirstName(),
+    order.getUser().getLastName(),
+    order.getUser().getEmail(),
+    order.getUser().getPhoneNumber());
+       
+        
+}
+
+
+
+
+
+    public List<UserWithOrderStatsDTO> getAllUserByRole(String email) {
+    User currentUser = userRepository.findByEmail(email);
+
+    // get all users with role USER
+    List<User> users = userRepository.findAll().stream()
+            .filter(u -> "USER".equalsIgnoreCase(u.getRole()))
+            .toList();
+
+    // get all orders (single DB hit)
+    List<UserOrders> orders = orderRepository.findAll();
+
+    // map users to response with counts
+    return users.stream().map(u -> {
+        List<UserOrders> userOrders = orders.stream()
+                .filter(o -> o.getUser().getId() == u.getId())
+                .toList();
+
+        long pending = userOrders.stream().filter(o -> "PENDING".equalsIgnoreCase(o.getStatus())).count();
+        long processing = userOrders.stream().filter(o -> "PROCESSING".equalsIgnoreCase(o.getStatus())).count();
+        long shipped = userOrders.stream().filter(o -> "SHIPPED".equalsIgnoreCase(o.getStatus())).count();
+        long delivered = userOrders.stream().filter(o -> "DELIVERED".equalsIgnoreCase(o.getStatus())).count();
+        long cancelled = userOrders.stream().filter(o -> "CANCELLED".equalsIgnoreCase(o.getStatus())).count();
+
+        return new UserWithOrderStatsDTO(
+                u.getId(),
+                u.getFirstName(),
+                u.getLastName(),
+                u.getEmail(),
+                u.getRole(),
+                u.getPhoneNumber(),
+                pending,
+                processing,
+                shipped,
+                delivered,
+                cancelled
+        );
+    }).toList();
+}
+
 }
