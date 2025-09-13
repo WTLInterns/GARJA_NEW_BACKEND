@@ -20,8 +20,6 @@ public class UserOrders {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-
-
     private String orderDate;
     private double totalAmount;
     private String status;
@@ -30,9 +28,9 @@ public class UserOrders {
     private String size;
     private String image;
 
-
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
+
 
 }

@@ -11,6 +11,7 @@ import com.garja.Garja.Repo.ProductRepo;
 import com.garja.Garja.Repo.UserRepo;
 import com.garja.Garja.Repo.UserOrdersRepo;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -210,4 +211,8 @@ public class OrderService {
                 })
                 .collect(Collectors.toList());
     }
+
+    @Autowired
+    private UserRepo userRepo;
+    
 }
