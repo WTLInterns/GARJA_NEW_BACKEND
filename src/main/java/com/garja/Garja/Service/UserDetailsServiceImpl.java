@@ -8,6 +8,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import com.garja.Garja.DTO.requests.SignupRequests;
+import com.garja.Garja.DTO.response.SignupResponse;
 import com.garja.Garja.Model.User;
 import com.garja.Garja.Repo.UserRepo;
 
@@ -37,6 +39,39 @@ public class UserDetailsServiceImpl implements UserDetailsService{
 	// 			return userRepo.findAll();
 
 	// }
+
+	public SignupResponse showProfile(String email){
+		User user = userRepo.findByEmail(email);
+		SignupResponse response = new SignupResponse();
+		response.setId(user.getId());
+		response.setEmail(user.getEmail());
+		response.setPassword(user.getPassword());
+		response.setFirstName(user.getFirstName());
+		response.setLastName(user.getLastName());
+		response.setPhoneNumber(user.getPhoneNumber());
+		response.setRole(user.getRole());
+		return response;
+	}
+
+	public SignupResponse updatePassword(String email, SignupRequests request) {
+    User user = this.userRepo.findByEmail(email);
+    user.setFirstName(request.getFirstName());
+    user.setLastName(request.getLastName());
+    user.setEmail(request.getEmail());
+    user.setPhoneNumber(request.getPhoneNumber());
+    user.setPassword(request.getPassword());
+    user.setRole(request.getRole());
+    userRepo.save(user);
+
+    SignupResponse response = new SignupResponse();
+    response.setId(user.getId());
+    response.setEmail(user.getEmail());
+    response.setFirstName(user.getFirstName());
+    response.setLastName(user.getLastName());
+
+    return response; 
+}
+
 
 
 

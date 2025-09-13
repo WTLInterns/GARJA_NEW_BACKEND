@@ -194,7 +194,7 @@ public List<AdminOrderResponse> getAllOrdersForAdmin(String email) {
     User user = userRepository.findByEmail(email);
 
     return orderRepository.findAll().stream()
-            .sorted((a, b) -> b.getOrderDate().compareTo(a.getOrderDate())) // ✅ Latest first
+            .sorted((a, b) -> b.getOrderDate().compareTo(a.getOrderDate())) 
             .map(order -> {
                 User u = order.getUser();
                 return new AdminOrderResponse(
