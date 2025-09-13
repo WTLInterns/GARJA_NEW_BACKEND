@@ -19,8 +19,11 @@ import org.springframework.security.core.Authentication;
 
 import com.garja.Garja.DTO.requests.ProductRequests;
 import com.garja.Garja.DTO.response.ProductResponse;
+import com.garja.Garja.DTO.response.UserWithOrderStatsDTO;
 import com.garja.Garja.DTO.response.AdminOrderResponse;
+import com.garja.Garja.DTO.response.DashboardResponse;
 import com.garja.Garja.Model.Product;
+import com.garja.Garja.Model.UserOrders;
 import com.garja.Garja.Service.ProductService;
 import com.garja.Garja.Service.OrderService;
 
@@ -61,30 +64,69 @@ public class  AdminController {
         return ResponseEntity.ok(productService.deleteProduct(id,email));
     }
 
-    @GetMapping("/getAllProducts")
-    public List<Product> getAllProducts(){
-         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    		String email = authentication.getName();
-        return productService.getAllProducts();
-    }
+    // @GetMapping("/getAllProducts")
+    // public List<Product> getAllProducts(){
+    //      Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    // 		String email = authentication.getName();
+    //     return productService.getAllProducts();
+    // }
 
-    @GetMapping("/getProductByCategory")
-    public List<Product> getAllProductsByCategory(@RequestParam String category){ 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    		String email = authentication.getName();
-        return this.productService.getProductsByCategory(category);
-    }
+    // @GetMapping("/getProductByCategory")
+    // public List<Product> getAllProductsByCategory(@RequestParam String category){ 
+    //     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    // 		String email = authentication.getName();
+    //     return this.productService.getProductsByCategory(category);
+    // }
 
-    @GetMapping("/getLatestProducts")
-    public List<Product> getLatestProducts(){
-      //   Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-			// String email = authentication.getName();
-        return this.productService.getLatestProducts();
-    }
+    // @GetMapping("/getLatestProducts")
+    // public List<Product> getLatestProducts(){
+    //   //   Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		// 	// String email = authentication.getName();
+    //     return this.productService.getLatestProducts();
+    // }
 
     @GetMapping("/orders")
     public ResponseEntity<List<AdminOrderResponse>> getAllOrders() {
-        List<AdminOrderResponse> orders = orderService.getAllOrdersForAdmin();
+      Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    		String email = authentication.getName();
+        List<AdminOrderResponse> orders = orderService.getAllOrdersForAdmin(email);
         return ResponseEntity.ok(orders);
+    }
+
+
+    @PutMapping("/update-status/{orderId}")
+    public ResponseEntity<UserOrders> updateStatus(
+            @PathVariable Integer orderId,
+            @RequestParam String newStatus) {
+              Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    		    String email = authentication.getName();
+                UserOrders updatedOrder = orderService.updateStatus(orderId, newStatus,email);
+                return ResponseEntity.ok(updatedOrder);
+              
+            }
+
+    @GetMapping("/order/{orderId}")
+    public ResponseEntity<AdminOrderResponse> getOrderById(@PathVariable int orderId) {
+      Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    		    String email = authentication.getName();
+            return ResponseEntity.ok(orderService.getOrderById(orderId,email));
+    }
+
+
+
+    @GetMapping("/role-stats")
+    public ResponseEntity<List<UserWithOrderStatsDTO>> getAllUserByRole() {
+      Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    		String email = authentication.getName();
+        List<UserWithOrderStatsDTO> response = orderService.getAllUserByRole(email);
+        return ResponseEntity.ok(response);
+    }
+
+
+    @GetMapping("/dashboardResponse")
+    public DashboardResponse getAllDashboardCount(){
+       Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    		String email = authentication.getName();
+        return this.orderService.countForDashboard(email);
     }
 }

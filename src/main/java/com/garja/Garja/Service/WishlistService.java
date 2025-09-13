@@ -1,6 +1,6 @@
 package com.garja.Garja.Service;
 
-
+import com.cloudinary.api.ApiResponse;
 import com.garja.Garja.DTO.response.WishlistResponse;
 import com.garja.Garja.Model.Product;
 import com.garja.Garja.Model.User;
@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
