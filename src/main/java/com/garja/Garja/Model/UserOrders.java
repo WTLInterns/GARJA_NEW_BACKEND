@@ -29,6 +29,8 @@ public class UserOrders {
     private int quantity;
     private String size;
     private String image;
+    private String paymentStatus;
+    private String paymentType;
 
 
     @ManyToOne

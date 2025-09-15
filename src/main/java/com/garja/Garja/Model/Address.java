@@ -26,7 +26,7 @@ public class Address {
 
     private String city;
 
-    private String lankmark;
+    private String landmark;
 
     private String pincode;
 

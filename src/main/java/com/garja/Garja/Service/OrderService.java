@@ -13,6 +13,9 @@ import com.garja.Garja.Repo.ProductRepo;
 import com.garja.Garja.Repo.UserRepo;
 import com.garja.Garja.Repo.UserOrdersRepo;
 import lombok.RequiredArgsConstructor;
+
+import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +25,19 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+// Razorpay
+import com.razorpay.RazorpayClient;
+import com.razorpay.RazorpayException;
+import com.garja.Garja.DTO.requests.RazorpayOrderRequest;
+import com.garja.Garja.DTO.requests.RazorpayPaymentVerificationRequest;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
+
 @Service
 @RequiredArgsConstructor
 public class OrderService {
@@ -30,6 +46,12 @@ public class OrderService {
     private final ProductRepo productRepository;
     private final UserOrdersRepo orderRepository;
     private final CartService cartService;
+
+    @Value("${razorpay.key.id}")
+    private String razorpayKeyId;
+
+    @Value("${razorpay.key.secret}")
+    private String razorpayKeySecret;
 
     @Transactional
     public OrderResponse buyNow(Integer userId, BuyNowRequest request) {
@@ -92,7 +114,7 @@ public class OrderService {
     @Transactional
     public OrderResponse checkoutCart(Integer userId) {
         Cart cart = cartService.getOrCreateCart(userId);
-        
+
         if (cart.getItems().isEmpty()) {
             throw new RuntimeException("Cart is empty");
         }
@@ -105,15 +127,15 @@ public class OrderService {
         // Validate all items and calculate totals
         for (var item : cart.getItems()) {
             Product product = item.getProduct();
-            
-            if (product.getIsActive()=="0") {
+
+            if ("0".equals(product.getIsActive())) {
                 throw new RuntimeException("Product " + product.getProductName() + " is no longer available");
             }
-            
+
             if (product.getQuantity() < item.getQuantity()) {
                 throw new RuntimeException("Insufficient stock for " + product.getProductName());
             }
-            
+
             double price;
             try {
                 price = Double.parseDouble(product.getPrice());
@@ -123,6 +145,8 @@ public class OrderService {
             totalAmount += price * item.getQuantity();
             totalQuantity += item.getQuantity();
         }
+
+        // Payment must be verified separately via verifyAndSaveOrder. Do not initiate payment here.
 
         // Deduct stock for all items
         for (var item : cart.getItems()) {
@@ -146,6 +170,8 @@ public class OrderService {
             lineOrder.setTotalAmount(lineTotal);
             lineOrder.setStatus("CONFIRMED");
             lineOrder.setOrderDate(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+            lineOrder.setPaymentStatus("SUCCESS");
+            lineOrder.setPaymentType("RAZORPAY");
 
             orderRepository.save(lineOrder);
         }
@@ -155,7 +181,7 @@ public class OrderService {
 
         // Return a summary response (keeps API backward compatible)
         return new OrderResponse(
-                0, // summary, not a single order id
+                0,
                 LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
                 totalAmount,
                 "CONFIRMED",
@@ -166,6 +192,65 @@ public class OrderService {
                 user.getId(),
                 "Order placed successfully from cart with " + itemCount + " items"
         );
+    }
+
+    // Create Razorpay order and return minimal details to frontend
+    public Map<String, Object> createRazorpayOrder(RazorpayOrderRequest request, Integer userId) throws RazorpayException {
+        if (request == null || request.getAmount() <= 0) {
+            throw new IllegalArgumentException("Invalid amount for Razorpay order");
+        }
+
+        RazorpayClient razorpay = new RazorpayClient(razorpayKeyId, razorpayKeySecret);
+
+        JSONObject orderRequest = new JSONObject();
+        orderRequest.put("amount", (int) (request.getAmount() * 100)); // amount in paise
+        orderRequest.put("currency", request.getCurrency() == null ? "INR" : request.getCurrency());
+        orderRequest.put("receipt", request.getReceipt() == null ? ("rcpt_" + System.currentTimeMillis()) : request.getReceipt());
+        orderRequest.put("payment_capture", 1);
+
+        com.razorpay.Order rpOrder = razorpay.orders.create(orderRequest);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", rpOrder.get("id"));
+        response.put("amount", rpOrder.get("amount"));
+        response.put("currency", rpOrder.get("currency"));
+        response.put("receipt", rpOrder.get("receipt"));
+        response.put("status", rpOrder.get("status"));
+        return response;
+    }
+
+    // Verify Razorpay signature and, on success, create orders from cart and clear cart
+    @Transactional
+    public OrderResponse verifyAndSaveOrder(RazorpayPaymentVerificationRequest request, Integer userId) {
+        if (request == null || request.getRazorpayOrderId() == null || request.getRazorpayPaymentId() == null || request.getRazorpaySignature() == null) {
+            throw new RuntimeException("Incomplete payment verification payload");
+        }
+
+        String data = request.getRazorpayOrderId() + "|" + request.getRazorpayPaymentId();
+        String computed = hmacSha256(data, razorpayKeySecret);
+        if (!computed.equals(request.getRazorpaySignature())) {
+            throw new RuntimeException("Invalid payment signature");
+        }
+
+        // Signature is valid -> proceed with creating orders from cart
+        return checkoutCart(userId);
+    }
+
+    private String hmacSha256(String data, String secret) {
+        try {
+            Mac sha256Hmac = Mac.getInstance("HmacSHA256");
+            SecretKeySpec secretKey = new SecretKeySpec(secret.getBytes(), "HmacSHA256");
+            sha256Hmac.init(secretKey);
+            byte[] signedBytes = sha256Hmac.doFinal(data.getBytes());
+            // Convert to lowercase hex string to match Razorpay's signature format
+            StringBuilder sb = new StringBuilder();
+            for (byte b : signedBytes) {
+                sb.append(String.format("%02x", b));
+            }
+            return sb.toString();
+        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
+            throw new RuntimeException("Failed to compute signature: " + e.getMessage());
+        }
     }
 
     @Transactional(readOnly = true)
