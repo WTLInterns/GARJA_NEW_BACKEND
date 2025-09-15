@@ -5,16 +5,19 @@ import com.garja.Garja.DTO.response.OrderResponse;
 import com.garja.Garja.DTO.response.UserWithOrderStatsDTO;
 import com.garja.Garja.DTO.response.AdminOrderResponse;
 import com.garja.Garja.DTO.response.DashboardResponse;
+import com.garja.Garja.Model.Address;
 import com.garja.Garja.Model.Cart;
 import com.garja.Garja.Model.Product;
 import com.garja.Garja.Model.User;
 import com.garja.Garja.Model.UserOrders;
+import com.garja.Garja.Repo.AddressRepo;
 import com.garja.Garja.Repo.ProductRepo;
 import com.garja.Garja.Repo.UserRepo;
 import com.garja.Garja.Repo.UserOrdersRepo;
 import lombok.RequiredArgsConstructor;
 
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,6 +49,9 @@ public class OrderService {
     private final ProductRepo productRepository;
     private final UserOrdersRepo orderRepository;
     private final CartService cartService;
+
+    @Autowired
+    private AddressRepo addresssRepo;;
 
     @Value("${razorpay.key.id}")
     private String razorpayKeyId;
@@ -112,8 +118,10 @@ public class OrderService {
     }
 
     @Transactional
-    public OrderResponse checkoutCart(Integer userId) {
+    public OrderResponse checkoutCart(Integer userId) { 
         Cart cart = cartService.getOrCreateCart(userId);
+        // Address address = addresssRepo.findById(addressId).get();
+
 
         if (cart.getItems().isEmpty()) {
             throw new RuntimeException("Cart is empty");
@@ -172,6 +180,7 @@ public class OrderService {
             lineOrder.setOrderDate(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
             lineOrder.setPaymentStatus("SUCCESS");
             lineOrder.setPaymentType("RAZORPAY");
+            // lineOrder.setAddress(address);
 
             orderRepository.save(lineOrder);
         }

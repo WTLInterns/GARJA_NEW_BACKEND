@@ -42,6 +42,8 @@ public class ProductService {
         products.setM(productRequests.getM());
         // products.setActive(products.isActive());
         products.setIsActive(productRequests.getIsActive());
+        products.setOriginalPrice(productRequests.getOriginalPrice());
+        products.setDiscount(productRequests.getDiscount());
 
         products.setL(productRequests.getL());
         products.setXL(productRequests.getXL());
@@ -86,6 +88,9 @@ public ProductResponse updateProduct(int productId, ProductRequests request, Str
         product.setCategory(request.getCategory());
         product.setDate(request.getDate());
         product.setTime(request.getTime());
+        product.setDiscount(request.getDiscount());
+        product.setOriginalPrice(request.getOriginalPrice());
+
 
         if (request.getImage() != null && !request.getImage().isEmpty()) {
             if (product.getImagePublicId() != null) {

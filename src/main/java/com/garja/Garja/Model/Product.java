@@ -26,6 +26,10 @@ public class Product {
 
     private String price;
 
+    private String originalPrice;
+
+    private String discount;
+
     private int quantity;
 
     private String isActive;
