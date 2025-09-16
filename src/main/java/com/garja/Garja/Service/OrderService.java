@@ -51,7 +51,7 @@ public class OrderService {
     private final CartService cartService;
 
     @Autowired
-    private AddressRepo addresssRepo;;
+    private AddressRepo addresssRepo;
 
     @Value("${razorpay.key.id}")
     private String razorpayKeyId;
@@ -118,9 +118,10 @@ public class OrderService {
     }
 
     @Transactional
-    public OrderResponse checkoutCart(Integer userId) { 
+    public OrderResponse checkoutCart(Integer userId, int addressId) { 
         Cart cart = cartService.getOrCreateCart(userId);
-        // Address address = addresssRepo.findById(addressId).get();
+        Address address = addresssRepo.findById(addressId)
+                .orElseThrow(() -> new RuntimeException("Address not found with ID: " + addressId));
 
 
         if (cart.getItems().isEmpty()) {
@@ -180,7 +181,7 @@ public class OrderService {
             lineOrder.setOrderDate(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
             lineOrder.setPaymentStatus("SUCCESS");
             lineOrder.setPaymentType("RAZORPAY");
-            // lineOrder.setAddress(address);
+            lineOrder.setAddress(address);
 
             orderRepository.save(lineOrder);
         }
@@ -230,7 +231,7 @@ public class OrderService {
 
     // Verify Razorpay signature and, on success, create orders from cart and clear cart
     @Transactional
-    public OrderResponse verifyAndSaveOrder(RazorpayPaymentVerificationRequest request, Integer userId) {
+    public OrderResponse verifyAndSaveOrder(RazorpayPaymentVerificationRequest request, Integer userId, int addressId) {
         if (request == null || request.getRazorpayOrderId() == null || request.getRazorpayPaymentId() == null || request.getRazorpaySignature() == null) {
             throw new RuntimeException("Incomplete payment verification payload");
         }
@@ -242,7 +243,7 @@ public class OrderService {
         }
 
         // Signature is valid -> proceed with creating orders from cart
-        return checkoutCart(userId);
+        return checkoutCart(userId, addressId);
     }
 
     private String hmacSha256(String data, String secret) {

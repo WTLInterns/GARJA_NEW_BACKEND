@@ -38,7 +38,8 @@ public class UserOrders {
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
 
-    @OneToOne
+     @ManyToOne
+    @JoinColumn(name = "address_id", referencedColumnName = "id")
     private Address address;
 
 }

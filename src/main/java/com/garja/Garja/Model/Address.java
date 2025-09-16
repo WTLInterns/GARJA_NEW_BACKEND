@@ -1,5 +1,7 @@
 package com.garja.Garja.Model;
 
+import java.util.List;
+
 import javax.annotation.processing.Generated;
 
 import jakarta.persistence.Entity;
@@ -8,6 +10,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -38,8 +41,8 @@ public class Address {
     private User user;
 
 
-    @OneToOne
-    private UserOrders userOrders;
+   @OneToMany(mappedBy = "address")
+    private List<UserOrders> userOrders;
 
     
 

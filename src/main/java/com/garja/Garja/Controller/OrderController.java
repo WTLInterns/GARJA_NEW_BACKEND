@@ -44,14 +44,14 @@ public class OrderController {
     }
 
     @PostMapping("/checkout")
-    public ResponseEntity<OrderResponse> checkoutCart() {
+    public ResponseEntity<OrderResponse> checkoutCart(@RequestParam int addressId) {
         try {
             // Get user ID from JWT token
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String email = authentication.getName();
             Integer userId = getUserIdFromEmail(email);
             
-            OrderResponse response = orderService.checkoutCart(userId);
+            OrderResponse response = orderService.checkoutCart(userId, addressId);
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             OrderResponse errorResponse = new OrderResponse();
@@ -80,13 +80,13 @@ public class OrderController {
 
     // Verify payment signature and create orders from cart
     @PostMapping("/verify-payment")
-    public ResponseEntity<?> verifyPayment(@RequestBody RazorpayPaymentVerificationRequest request) {
+    public ResponseEntity<?> verifyPayment(@RequestBody RazorpayPaymentVerificationRequest request, @RequestParam int addressId) {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String email = authentication.getName();
             Integer userId = getUserIdFromEmail(email);
 
-            OrderResponse response = orderService.verifyAndSaveOrder(request, userId);
+            OrderResponse response = orderService.verifyAndSaveOrder(request, userId, addressId);
             return ResponseEntity.ok(response);
         } catch (RuntimeException ex) {
             return ResponseEntity.badRequest().body(ex.getMessage());
