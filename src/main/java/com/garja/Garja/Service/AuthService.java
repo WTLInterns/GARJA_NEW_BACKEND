@@ -55,6 +55,7 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(requests.getPassword())); 
         user.setRole(requests.getRole());
         user.setPhoneNumber(requests.getPhoneNumber());
+        user.setProvider("local");
 
 
         User savedUser = userRepo.save(user);
@@ -86,10 +87,8 @@ public class AuthService {
         response.setPhoneNumber(savedUser.getPhoneNumber());
         response.setRole(savedUser.getRole());
         response.setToken(token);
-
-
         return response;
-    }
+    }                                                                
 
 
 

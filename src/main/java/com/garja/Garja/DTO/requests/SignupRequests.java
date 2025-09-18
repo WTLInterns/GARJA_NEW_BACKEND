@@ -20,4 +20,8 @@ public class SignupRequests {
     private String phoneNumber;
 
     private String role;
+
+    private String provider;
+
+
 }

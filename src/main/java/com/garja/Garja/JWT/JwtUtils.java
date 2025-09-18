@@ -4,6 +4,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Function;
 
 import javax.crypto.SecretKey;
@@ -11,6 +12,8 @@ import javax.crypto.spec.SecretKeySpec;
 
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+
+import com.garja.Garja.Model.User;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts; // Correct import
@@ -35,6 +38,25 @@ public class JwtUtils{
 			.expiration(new Date(System.currentTimeMillis()+EXPIRATION_TIME))
 			.signWith(key)
 			.compact();
+	}
+	
+	// Overloaded method to generate token with User object (for OAuth2)
+	public String generateToken(User user) {
+		Map<String, Object> claims = new HashMap<>();
+		claims.put("id", user.getId());
+		claims.put("firstName", user.getFirstName());
+		claims.put("lastName", user.getLastName());
+		claims.put("email", user.getEmail());
+		claims.put("phoneNumber", user.getPhoneNumber());
+		claims.put("role", user.getRole());
+		
+		return Jwts.builder()
+				.claims(claims)
+				.subject(user.getEmail())
+				.issuedAt(new Date(System.currentTimeMillis()))
+				.expiration(new Date(System.currentTimeMillis()+EXPIRATION_TIME))
+				.signWith(key)
+				.compact();
 	}
 	
 	public String generateRefreshToken(HashMap<String,Object> claims, UserDetails userDetails) {
