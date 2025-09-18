@@ -97,7 +97,7 @@ public class AuthService {
 		LoginResponse response = new LoginResponse();
 		try {
 			authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getEmail(),loginRequest.getPassword()));
-			var user = this.userRepo.findByEmail(loginRequest.getEmail());
+        User user = this.userRepo.findByEmail(loginRequest.getEmail()).orElseThrow();
 			var jwt = jwtUtils.generateToken(user);
 			response.setToken(jwt);
             response.setFirstName(user.getFirstName());

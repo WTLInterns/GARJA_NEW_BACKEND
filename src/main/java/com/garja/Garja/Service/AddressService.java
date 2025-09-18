@@ -23,7 +23,7 @@ public class AddressService {
 
 
     public AddressResponse addAddress(String email, AddressRequest request){
-        User user = this.userRepo.findByEmail(email);
+        User user = this.userRepo.findByEmail(email).orElseThrow();
         Address address = new Address();
         address.setSteet(request.getSteet());
         address.setCity(request.getCity());
@@ -38,12 +38,12 @@ public class AddressService {
     }
 
     public void deleteAddress(int id, String email){
-        User user = this.userRepo.findByEmail(email);
+        User user = this.userRepo.findByEmail(email).orElseThrow();
         this.addressRepo.deleteById(id);
     }
 
     public List<AddressResponse> getAllAddressByUser(String email) {
-    User user = this.userRepo.findByEmail(email);
+        User user = this.userRepo.findByEmail(email).orElseThrow();
     if (user == null) {
         throw new RuntimeException("User not found with email: " + email);
     }

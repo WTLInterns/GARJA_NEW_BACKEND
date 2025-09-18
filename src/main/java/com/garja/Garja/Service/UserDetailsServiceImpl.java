@@ -24,7 +24,7 @@ public class UserDetailsServiceImpl implements UserDetailsService{
 	
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-		User user = userRepo.findByEmail(username);
+        User user = this.userRepo.findByEmail(username).orElseThrow();
 
         if (user != null) {
             return user;
@@ -41,7 +41,7 @@ public class UserDetailsServiceImpl implements UserDetailsService{
 	// }
 
 	public SignupResponse showProfile(String email){
-		User user = userRepo.findByEmail(email);
+        User user = this.userRepo.findByEmail(email).orElseThrow();
 		SignupResponse response = new SignupResponse();
 		response.setId(user.getId());
 		response.setEmail(user.getEmail());
@@ -54,7 +54,7 @@ public class UserDetailsServiceImpl implements UserDetailsService{
 	}
 
 	public SignupResponse updatePassword(String email, SignupRequests request) {
-    User user = this.userRepo.findByEmail(email);
+        User user = this.userRepo.findByEmail(email).orElseThrow();
     user.setFirstName(request.getFirstName());
     user.setLastName(request.getLastName());
     user.setEmail(request.getEmail());

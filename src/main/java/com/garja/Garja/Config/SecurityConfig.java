@@ -16,6 +16,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.garja.Garja.JWT.JwtAuthFilter;
+import com.garja.Garja.OAuth2.OAuth2AuthenticationSuccessHandler;
+import com.garja.Garja.Service.CustomOAuth2UserService;
 import com.garja.Garja.Service.UserDetailsServiceImpl;
 
 
@@ -28,11 +30,17 @@ public class SecurityConfig {
 	@Autowired
 	private JwtAuthFilter jwtAuthFilter;
 	
+	@Autowired
+	private CustomOAuth2UserService customOAuth2UserService;
+	
+	@Autowired
+	private OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
+	
 	@Bean
 	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 	    http.authorizeHttpRequests(request -> 
 	        request
-	            .requestMatchers("/auth/**","/public/**").permitAll()  
+	            .requestMatchers("/auth/**","/public/**", "/oauth2/**", "/login/oauth2/**").permitAll()  
 	            .requestMatchers("/admin/**").hasAnyAuthority("ADMIN")
 	            .requestMatchers("/user/**").hasAnyAuthority("USER")
 				.requestMatchers("/common/reset-password").hasAnyRole("USER", "ADMIN")
@@ -43,6 +51,13 @@ public class SecurityConfig {
 	    http.csrf(csrf -> csrf.disable());
 	    http.csrf(AbstractHttpConfigurer::disable);
 		http.cors(Customizer.withDefaults());
+		
+		// OAuth2 Login Configuration
+		http.oauth2Login(oauth2 -> oauth2
+			.userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+			.successHandler(oAuth2AuthenticationSuccessHandler)
+		);
+		
 		http.authenticationProvider(authenticationProvider()).addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
 	    return http.build();

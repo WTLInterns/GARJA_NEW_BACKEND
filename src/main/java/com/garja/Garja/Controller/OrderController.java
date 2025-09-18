@@ -114,7 +114,7 @@ public class OrderController {
                 throw new RuntimeException("Email is required");
             }
             
-            User user = userRepository.findByEmail(email);
+            User user = userRepository.findByEmail(email).orElseThrow();
             if (user == null) {
                 throw new RuntimeException("User not found");
             }

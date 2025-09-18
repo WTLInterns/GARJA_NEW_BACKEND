@@ -21,7 +21,7 @@ public class PasswordResetService {
 
 
     public PasswordResponse resetPassword(String email, PasswordRequests request) {
-        User user = userRepo.findByEmail(email);
+        User user = this.userRepo.findByEmail(email).orElseThrow();
         if (user == null) {
             throw new RuntimeException("User not found with email: " + email);
         }

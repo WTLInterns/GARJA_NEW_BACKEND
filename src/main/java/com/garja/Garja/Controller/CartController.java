@@ -94,7 +94,7 @@ public class CartController {
             }
             
             String email = authentication.getName();
-            User user = userRepository.findByEmail(email);
+            User user = userRepository.findByEmail(email).orElseThrow();
             if (user == null) {
                 throw new RuntimeException("User not found");
             }

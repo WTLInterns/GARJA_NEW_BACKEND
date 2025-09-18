@@ -36,6 +36,11 @@ public class User implements UserDetails {
 
     private String phoneNumber;
 
+    // OAuth2 fields
+    private String provider; // "google", "local", etc.
+    private String providerId; // Google user ID
+    private String profileImageUrl;
+
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private UserProfile userProfile;
 

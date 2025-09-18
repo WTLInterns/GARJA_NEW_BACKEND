@@ -286,7 +286,7 @@ public class OrderService {
 
     @Transactional(readOnly = true)
 public List<AdminOrderResponse> getAllOrdersForAdmin(String email) {
-    User user = userRepository.findByEmail(email);
+        User user = this.userRepository.findByEmail(email).orElseThrow();
 
     return orderRepository.findAll().stream()
             .sorted((a, b) -> b.getOrderDate().compareTo(a.getOrderDate())) 
@@ -337,7 +337,7 @@ public List<AdminOrderResponse> getAllOrdersForAdmin(String email) {
 
 
     public AdminOrderResponse getOrderById(int orderId, String email){
-        User user = this.userRepository.findByEmail(email);
+        User user = this.userRepository.findByEmail(email).orElseThrow();
     UserOrders order = orderRepository.findById(orderId).orElseThrow();
     return new AdminOrderResponse(order.getId(),
     order.getOrderDate(),
@@ -360,7 +360,7 @@ public List<AdminOrderResponse> getAllOrdersForAdmin(String email) {
 
 
     public List<UserWithOrderStatsDTO> getAllUserByRole(String email) {
-    User currentUser = userRepository.findByEmail(email);
+        User user = this.userRepository.findByEmail(email).orElseThrow();
 
     // get all users with role USER
     List<User> users = userRepository.findAll().stream()
@@ -399,7 +399,7 @@ public List<AdminOrderResponse> getAllOrdersForAdmin(String email) {
 }
 
 public DashboardResponse countForDashboard(String email) {
-    User user = this.userRepository.findByEmail(email);
+    User user = this.userRepository.findByEmail(email).orElseThrow();
         int customerCount = (int) userRepository.findAll()
                 .stream()
                 .filter(u -> "USER".equalsIgnoreCase(u.getRole()))

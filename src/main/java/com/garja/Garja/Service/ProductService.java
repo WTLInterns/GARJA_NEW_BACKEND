@@ -29,7 +29,7 @@ public class ProductService {
 
 
     public ProductResponse addProduct(ProductRequests productRequests, String email) throws IOException {
-        User user = this.userRepo.findByEmail(email);
+        User user = this.userRepo.findByEmail(email).orElseThrow();
 
         Product products = new Product();
         LocalDateTime now = LocalDateTime.now();
@@ -70,7 +70,7 @@ if (productRequests.getImage() != null && !productRequests.getImage().isEmpty())
 
 
 public ProductResponse updateProduct(int productId, ProductRequests request, String email) throws IOException {
-            User user = this.userRepo.findByEmail(email);
+        User user = this.userRepo.findByEmail(email).orElseThrow();
 
         Product product = productRepo.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found with id " + productId));
@@ -114,7 +114,7 @@ public ProductResponse updateProduct(int productId, ProductRequests request, Str
 
 
     public ProductResponse deleteProduct(int id, String email) throws IOException {
-                    User user = this.userRepo.findByEmail(email);
+        User user = this.userRepo.findByEmail(email).orElseThrow();
 
         if (!productRepo.existsById(id)) {
             return new ProductResponse(id, null, "Product not found!");
